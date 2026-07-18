@@ -38,16 +38,20 @@ FLOW_STATUS=$?
 set -e
 
 echo "■ Finalising recording"
-xcodebuildmcp simulator record-video --simulator-id "$UDID" --stop true
+xcodebuildmcp simulator record-video \
+  --simulator-id "$UDID" \
+  --stop true \
+  --output-file "$OUT"
 
 if [[ ! -s "$OUT" ]]; then
   echo "Recording was not created: $OUT" >&2
   exit 1
 fi
 
-# Even if an external service is unusually slow, the final deliverable never
-# exceeds the 90-second requirement.
-ffmpeg -hide_banner -loglevel error -y -i "$OUT" -t 89 -c copy "$CAPPED_OUT"
+# Re-encode to an exact 88-second maximum. Stream-copy trimming can land on a
+# later keyframe and accidentally exceed the 90-second requirement.
+ffmpeg -hide_banner -loglevel error -y -i "$OUT" \
+  -t 88 -c:v libx264 -preset veryfast -crf 20 -movflags +faststart "$CAPPED_OUT"
 mv "$CAPPED_OUT" "$OUT"
 
 DURATION=$(ffprobe -v error -show_entries format=duration -of default=nokey=1:noprint_wrappers=1 "$OUT")

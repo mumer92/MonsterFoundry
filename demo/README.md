@@ -2,7 +2,7 @@
 
 The repeatable default capture uses the **iPad Air 11-inch (M4)** simulator
 (`305A911D-F2E2-4E4B-9D3A-7BBAA3234924`) and always produces a final file under
-90 seconds. It shows the strongest reliable route: idea -> crayon postcard ->
+90 seconds. It re-encodes to an 88-second maximum and shows the strongest reliable route: idea -> crayon postcard ->
 story voice -> touch reaction -> saved creation -> next chapter.
 
 ## Prerequisites
@@ -14,7 +14,7 @@ story voice -> touch reaction -> saved creation -> next chapter.
 ## Option A — scripted + recorded
 
 Builds the app, runs the Maestro flow, records the screen, then hard-trims the
-final MP4 to 89 seconds:
+final MP4 to 88 seconds:
 
 ```bash
 ./demo/record.sh                 # -> demo/monsterfoundry-demo.mp4
@@ -46,7 +46,8 @@ Creations**, and choose **Next chapter**. Stop recording with:
 
 ```bash
 xcodebuildmcp simulator record-video \
-  --simulator-id 305A911D-F2E2-4E4B-9D3A-7BBAA3234924 --stop true
+  --simulator-id 305A911D-F2E2-4E4B-9D3A-7BBAA3234924 \
+  --stop true --output-file demo/monsterfoundry-demo.mp4
 ```
 
 ## Tips
