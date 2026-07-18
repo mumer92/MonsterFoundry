@@ -21,11 +21,11 @@ Draw or describe  ➜  Direct the magic  ➜  Reveal  ➜  Hear & play  ➜  My 
 
 ## Demo
 
-https://github.com/mumer92/MonsterFoundry/raw/main/demo/monsterfoundry-demo.mp4
+https://github.com/mumer92/MonsterFoundry/raw/main/demo/demo.mp4
 
-<video src="https://github.com/mumer92/MonsterFoundry/raw/main/demo/monsterfoundry-demo.mp4" controls muted playsinline width="100%"></video>
+<video src="https://github.com/mumer92/MonsterFoundry/raw/main/demo/demo.mp4" controls muted playsinline width="100%"></video>
 
-> If the player doesn't load, [▶️ watch / download the demo here](./demo/monsterfoundry-demo.mp4).
+> If the player doesn't load, [▶️ watch / download the demo here](./demo/demo.mp4).
 
 ---
 
