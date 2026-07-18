@@ -1,0 +1,59 @@
+#!/bin/sh
+#
+# pre-commit — secret & personal-identifier guard for a PUBLIC repo.
+#
+# Blocks a commit if any STAGED change would introduce:
+#   1. An Apple Developer Team ID  (DEVELOPMENT_TEAM = <value>)
+#   2. A credentials file          (keys.plist)
+#
+# The Team ID belongs only in Config/Local.xcconfig (gitignored). Signing
+# settings must never enter git history for this public repository.
+#
+# Enable once per clone:  git config core.hooksPath .githooks
+#
+# To bypass in an emergency (NOT recommended):  git commit --no-verify
+
+set -eu
+
+fail=0
+
+# Files staged for this commit (added/copied/modified).
+staged=$(git diff --cached --name-only --diff-filter=ACM)
+[ -z "$staged" ] && exit 0
+
+for path in $staged; do
+	# Template/example files are allowed to carry placeholders.
+	case "$path" in
+		*.example) continue ;;
+	esac
+
+	# --- 2. Block any credentials file by name --------------------------------
+	case "$path" in
+		keys.plist|*/keys.plist|*/Local.xcconfig|Config/Local.xcconfig)
+			echo "✖ pre-commit: '$path' must never be committed (secret/local file)." >&2
+			fail=1
+			continue
+			;;
+	esac
+
+	# --- 1. Block a non-empty DEVELOPMENT_TEAM in staged content --------------
+	case "$path" in
+		*.pbxproj|*.xcconfig)
+			# Inspect the STAGED blob (not the working tree).
+			if git show ":$path" 2>/dev/null \
+				| grep -Eq 'DEVELOPMENT_TEAM[[:space:]]*=[[:space:]]*[0-9A-Za-z]+'; then
+				echo "✖ pre-commit: '$path' contains a DEVELOPMENT_TEAM value." >&2
+				echo "  Move it to Config/Local.xcconfig (gitignored) and remove it from '$path'." >&2
+				fail=1
+			fi
+			;;
+	esac
+done
+
+if [ "$fail" -ne 0 ]; then
+	echo "" >&2
+	echo "Commit aborted. Fix the items above, or bypass with --no-verify (discouraged)." >&2
+	exit 1
+fi
+
+exit 0

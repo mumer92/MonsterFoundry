@@ -1,0 +1,75 @@
+# ---------------------------------------------------------------------------
+# Secrets & local credentials — NEVER commit these (public repo)
+# ---------------------------------------------------------------------------
+keys.plist
+**/keys.plist
+# Local signing config (Apple Developer Team ID) — never publish
+Config/Local.xcconfig
+*.secret
+*.secrets
+secrets.plist
+.env
+.env.*
+*.pem
+*.p12
+*.mobileprovision
+*.cer
+
+# ---------------------------------------------------------------------------
+# macOS
+# ---------------------------------------------------------------------------
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+
+# ---------------------------------------------------------------------------
+# Xcode - build products & user state
+# ---------------------------------------------------------------------------
+build/
+DerivedData/
+*.xcuserstate
+*.xcuserdatad/
+xcuserdata/
+*.moved-aside
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Xcode workspace/project user-specific files
+*.xcworkspace/xcuserdata/
+*.xcodeproj/xcuserdata/
+*.xcodeproj/project.xcworkspace/xcuserdata/
+*.xcscmblueprint
+*.xccheckout
+
+# ---------------------------------------------------------------------------
+# Swift Package Manager
+# ---------------------------------------------------------------------------
+.build/
+.swiftpm/
+Packages/
+Package.pins
+# Package.resolved is intentionally tracked to lock dependency versions
+
+# ---------------------------------------------------------------------------
+# CocoaPods / Carthage (if ever added)
+# ---------------------------------------------------------------------------
+Pods/
+Carthage/Build/
+
+# ---------------------------------------------------------------------------
+# Fastlane
+# ---------------------------------------------------------------------------
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/**/*.png
+fastlane/test_output
+
+# ---------------------------------------------------------------------------
+# Misc
+# ---------------------------------------------------------------------------
+*.log
+*~
