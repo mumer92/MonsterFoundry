@@ -19,8 +19,19 @@ Draw or describe  ➜  Direct the magic  ➜  Reveal  ➜  Hear & play  ➜  My 
 
 ---
 
+## Demo
+
+https://github.com/mumer92/MonsterFoundry/raw/main/demo/monsterfoundry-demo.mp4
+
+<video src="https://github.com/mumer92/MonsterFoundry/raw/main/demo/monsterfoundry-demo.mp4" controls muted playsinline width="100%"></video>
+
+> If the player doesn't load, [▶️ watch / download the demo here](./demo/monsterfoundry-demo.mp4).
+
+---
+
 ## Table of Contents
 
+- [Demo](#demo)
 - [What it does](#what-it-does)
 - [Features](#features)
 - [How it works](#how-it-works)
@@ -179,8 +190,7 @@ codex-hackathon-2/
 │   └── Sources/MonsterFoundryFeature/
 ├── MonsterFoundryUITests/
 ├── .githooks/pre-commit          # secret / Team ID guard
-├── PLAN.md                       # full product & hackathon plan
-└── DEMO_CHECKLIST.md             # judge runbook
+└── PLAN.md                       # full product & hackathon plan
 ```
 
 ## Security & privacy
@@ -192,7 +202,6 @@ codex-hackathon-2/
 ## Documentation
 
 - 📘 [PLAN.md](./PLAN.md) — the complete product and hackathon build plan
-- ✅ [DEMO_CHECKLIST.md](./DEMO_CHECKLIST.md) — the last-minute judge runbook
 
 ## License
 
