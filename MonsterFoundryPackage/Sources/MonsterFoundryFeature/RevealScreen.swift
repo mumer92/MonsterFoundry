@@ -12,6 +12,8 @@ struct RevealScreen: View {
     let onOpenGallery: () -> Void
     let onRetryVideo: () -> Void
     let onGenerateMovie: (VideoLength) -> Void
+    /// Overall movie-build progress (0...1) for the determinate progress bar.
+    var videoProgress: Double = 0
 
     @State private var celebrateMovie = false
 
@@ -28,7 +30,7 @@ struct RevealScreen: View {
 
                 if landscape {
                     HStack(alignment: .center, spacing: 18) {
-                        HeroStage(result: result, videoState: videoState, showsCaption: false)
+                        HeroStage(result: result, videoState: videoState, showsCaption: false, progressFraction: videoProgress)
                             .frame(width: heroWidth, height: landscapeStageHeight)
                             .clipShape(RoundedRectangle(cornerRadius: 32, style: .continuous))
 
@@ -50,7 +52,7 @@ struct RevealScreen: View {
                 } else {
                     ScrollView {
                         VStack(spacing: 18) {
-                            HeroStage(result: result, videoState: videoState, showsCaption: true)
+                            HeroStage(result: result, videoState: videoState, showsCaption: true, progressFraction: videoProgress)
                                 .aspectRatio(16 / 9, contentMode: .fit)
                             StoryPanel(
                                 result: result,
@@ -128,15 +130,16 @@ struct RevealScreen: View {
     @ViewBuilder
     private var footerActions: some View {
         if case .failed(let message) = videoState, !result.isFallback {
+            let guidance = videoFailureGuidance(for: message)
             HStack(spacing: 12) {
                 Image(systemName: "film.stack")
                     .font(.system(.title3, weight: .bold))
                     .foregroundStyle(MonsterTheme.mango)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("The movie needs another moment")
+                    Text(guidance.title)
                         .font(.system(.subheadline, design: .rounded, weight: .black))
                         .foregroundStyle(.white)
-                    Text("Your picture, story, and voice are all ready to enjoy now — you can try the movie again any time.")
+                    Text(guidance.message)
                         .font(.system(.caption, design: .rounded, weight: .medium))
                         .foregroundStyle(.white.opacity(0.6))
                         .lineLimit(3)
@@ -156,8 +159,22 @@ struct RevealScreen: View {
             .padding(14)
             .monsterGlassPanel()
             .accessibilityElement(children: .combine)
-            .accessibilityLabel("The movie could not finish. \(message). Your picture and story are ready. Double tap to try the movie again.")
+            .accessibilityLabel("\(guidance.title). \(message). \(guidance.message) Double tap to try the movie again.")
         }
+    }
+
+    private func videoFailureGuidance(for error: String) -> (title: String, message: String) {
+        let detail = error.lowercased()
+        if detail.contains("quota") || detail.contains("billing") || detail.contains("rate limit") {
+            return (
+                "Veo needs a billing check",
+                "Your picture, story, and voice are ready. Enable Gemini video billing or wait for quota, then try the movie again."
+            )
+        }
+        return (
+            "The movie needs another moment",
+            "Your picture, story, and voice are all ready to enjoy now — you can try the movie again any time."
+        )
     }
 }
 
@@ -165,6 +182,9 @@ private struct HeroStage: View {
     let result: MonsterResult
     let videoState: VideoGenerationState
     let showsCaption: Bool
+    /// Overall movie-build progress, 0...1. Defaulted so other call sites and
+    /// previews are unaffected.
+    var progressFraction: Double = 0
 
     @State private var reactionCount = 0
     @State private var isReacting = false
@@ -342,24 +362,63 @@ private extension HeroStage {
     private var videoProgress: some View {
         switch videoState {
         case .requesting(let scene, let total), .processing(let scene, let total):
-            VStack(spacing: 8) {
-                ProgressView()
+            let percent = Int((progressFraction * 100).rounded())
+            VStack(spacing: 12) {
+                HStack(spacing: 8) {
+                    Image(systemName: "film.stack.fill")
+                        .foregroundStyle(MonsterTheme.mango)
+                    Text("Building your movie")
+                        .font(.system(.subheadline, design: .rounded, weight: .black))
+                    Spacer(minLength: 8)
+                    Text("\(percent)%")
+                        .font(.system(.subheadline, design: .rounded, weight: .black))
+                        .monospacedDigit()
+                        .foregroundStyle(MonsterTheme.mango)
+                }
+
+                ProgressView(value: min(1, max(0.02, progressFraction)))
                     .tint(MonsterTheme.mango)
-                Text("Building movie scene \(scene) of \(total)")
-                    .font(.system(.caption, design: .rounded, weight: .black))
-                Text("The character is ready to play while the movie cooks.")
-                    .font(.system(.caption2, design: .rounded, weight: .medium))
-                    .opacity(0.58)
+                    .animation(.easeInOut(duration: 0.4), value: progressFraction)
+
+                // One pip per scene: finished, in-progress, or waiting.
+                HStack(spacing: 5) {
+                    ForEach(0..<total, id: \.self) { index in
+                        Capsule()
+                            .fill(pipColor(index: index, currentScene: scene))
+                            .frame(height: 5)
+                    }
+                }
+
+                Text("Scene \(scene) of \(total) · your picture, story, and voice are ready to enjoy while it finishes.")
+                    .font(.system(.caption2, design: .rounded, weight: .semibold))
+                    .multilineTextAlignment(.center)
+                    .opacity(0.72)
             }
             .foregroundStyle(.white)
-            .padding(.horizontal, 18)
-            .padding(.vertical, 14)
-            .background(.black.opacity(0.60), in: RoundedRectangle(cornerRadius: 17, style: .continuous))
+            .padding(.horizontal, 20)
+            .padding(.vertical, 16)
+            .frame(maxWidth: 340)
+            .background(.black.opacity(0.66), in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                    .stroke(.white.opacity(0.14), lineWidth: 1)
+            }
+            .padding(20)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
             .allowsHitTesting(false)
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel("Building movie, scene \(scene) of \(total), \(percent) percent complete. Your picture and story are ready now.")
         default:
             EmptyView()
         }
+    }
+
+    /// Colours a scene pip: finished scenes are mint, the current scene is
+    /// mango, and not-yet-started scenes are dim. `currentScene` is 1-based.
+    private func pipColor(index: Int, currentScene: Int) -> Color {
+        if index < currentScene - 1 { return MonsterTheme.mint }
+        if index == currentScene - 1 { return MonsterTheme.mango }
+        return .white.opacity(0.18)
     }
 }
 

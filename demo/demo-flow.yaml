@@ -1,0 +1,59 @@
+# Monster Foundry — reliable <90 second judge demo (Maestro)
+#
+# It deliberately uses a Fast illustrated postcard instead of a live Veo
+# request. A Veo job is asynchronous and can exceed a judge-demo time budget.
+# The flow still demonstrates the full core journey: idea -> AI world and
+# story -> AI voice -> tactile reaction -> saved history -> next chapter.
+
+appId: com.monster.app
+---
+- launchApp:
+    clearState: true
+
+# 1. Give the foundry an idea.
+- tapOn: "Use a prompt"
+- tapOn:
+    id: "creaturePromptEditor"
+- inputText: "a big friendly fuzzy blue cookie-loving monster with two googly eyes and a wide happy grin, holding a chocolate-chip cookie"
+- tapOn:
+    id: "bringItAliveButton"
+
+# 2. Direct the result toward the fastest, most visual payoff.
+- assertVisible:
+    id: "creationStudioScreen"
+- tapOn: "Crayon"
+- tapOn: "Faithful"
+- tapOn: "Fast illustrated postcard"
+- tapOn: "Short"
+- tapOn:
+    id: "createMonsterButton"
+
+# 3. Wait for the image and story, but never let a slow service create a long
+# recording. The recorder trims the final file to 89 seconds as a second guard.
+- extendedWaitUntil:
+    visible:
+      id: "monsterRevealScreen"
+    timeout: 45000
+
+# 4. Let the judge see and hear the character react.
+- tapOn:
+    id: "speakButton"
+- waitForAnimationToEnd:
+    timeout: 3000
+- tapOn:
+    point: "24%, 55%"
+- waitForAnimationToEnd:
+    timeout: 1800
+
+# 5. Prove that it was saved, then show its story can continue.
+- tapOn:
+    id: "revealGalleryButton"
+- assertVisible:
+    id: "monsterGalleryScreen"
+- waitForAnimationToEnd:
+    timeout: 1200
+- tapOn: "Next chapter"
+- extendedWaitUntil:
+    visible:
+      id: "creationStudioScreen"
+    timeout: 6000

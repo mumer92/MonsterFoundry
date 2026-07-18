@@ -26,6 +26,9 @@ public struct ContentView: View {
     /// postcard or story (whose output does not include video) can still be
     /// animated on demand.
     @State private var videoRequested = false
+    /// Overall movie-build progress, 0...1, driven by the scene polling loop and
+    /// surfaced as a determinate bar on the reveal.
+    @State private var videoProgress: Double = 0
     @State private var speaker = MonsterSpeaker()
     @State private var library = CreationLibrary()
 
@@ -98,7 +101,8 @@ public struct ContentView: View {
                         },
                         onGenerateMovie: { length in
                             requestMovie(length)
-                        }
+                        },
+                        videoProgress: videoProgress
                     )
                     .transition(.opacity.combined(with: .scale(scale: 1.03)))
                 }
@@ -364,6 +368,7 @@ public struct ContentView: View {
         videoRequested = true
         allowsAutomaticVideo = true
         videoState = .idle
+        videoProgress = 0
         videoAttempt += 1
     }
 
@@ -382,10 +387,15 @@ public struct ContentView: View {
             for clip in clips { try? FileManager.default.removeItem(at: clip) }
         }
 
+        videoProgress = 0.02
+        let sceneSpan = 1.0 / Double(max(1, totalScenes))
+
         do {
             for sceneIndex in 0..<totalScenes {
                 try Task.checkCancellation()
                 let displayScene = sceneIndex + 1
+                let sceneBase = Double(sceneIndex) * sceneSpan
+                videoProgress = sceneBase + sceneSpan * 0.05
                 videoState = .requesting(scene: displayScene, total: totalScenes)
                 let operation = try await apiClient.beginAnimation(
                     for: result,
@@ -394,8 +404,12 @@ public struct ContentView: View {
                 videoState = .processing(scene: displayScene, total: totalScenes)
 
                 var completedURL: URL?
-                for _ in 0..<45 {
+                for pollIndex in 0..<45 {
                     try await Task.sleep(for: .seconds(4))
+                    // Ease within this scene's slice toward ~92% while the clip
+                    // renders, so the bar keeps moving during the long poll.
+                    let within = 1 - pow(0.85, Double(pollIndex + 1))
+                    videoProgress = sceneBase + sceneSpan * min(0.92, within)
                     let status = try await apiClient.animationStatus(operation: operation)
                     switch status.status {
                     case "complete":
@@ -414,8 +428,11 @@ public struct ContentView: View {
                     throw MonsterAPIError.server("Scene \(displayScene) is taking longer than expected. Try the movie again later.")
                 }
                 clips.append(completedURL)
+                videoProgress = Double(sceneIndex + 1) * sceneSpan
             }
 
+            // Reserve the last sliver for the local join/trim step.
+            videoProgress = 0.97
             let movieURL = try await VideoComposer.compose(
                 clips: clips,
                 targetDurationSeconds: result.brief.videoLength.rawValue
@@ -428,6 +445,7 @@ public struct ContentView: View {
             } else {
                 videoState = .ready(movieURL)
             }
+            videoProgress = 1
         } catch is CancellationError {
             return
         } catch {

@@ -1,74 +1,199 @@
-# Monster Foundry
+<div align="center">
 
-Draw anything imaginative or describe it in a sentence. Monster Foundry preserves the child's idea, discovers a personality and proper story, renders it in a chosen art material, gives it a voice, and can create a saved 10–30 second movie.
+# 🧟 Monster Foundry
+
+**Draw a doodle — or describe one in a sentence — and watch it come alive with a name, a personality, a story, a voice, and its own little movie.**
+
+Monster Foundry keeps your original idea as the source of truth: it discovers a character, renders it in a chosen art material, narrates its tale, and can save a 10–30 second movie of its adventure.
+
+![Platform](https://img.shields.io/badge/platform-iOS%2017%2B-blue)
+![Swift](https://img.shields.io/badge/Swift-6.1-orange)
+![UI](https://img.shields.io/badge/UI-SwiftUI-green)
+![Architecture](https://img.shields.io/badge/architecture-no%20backend-lightgrey)
+
+</div>
 
 ```text
-Draw or describe -> Direct the magic -> Reveal -> Hear and play -> My Creations
+Draw or describe  ➜  Direct the magic  ➜  Reveal  ➜  Hear & play  ➜  My Creations
 ```
 
-## Implemented
+---
 
-- Native SwiftUI iPad/iPhone app targeting iOS 17+
-- Adaptive portrait and landscape layouts
-- Large PencilKit canvas with Apple Pencil and finger input
+## Table of Contents
+
+- [What it does](#what-it-does)
+- [Features](#features)
+- [How it works](#how-it-works)
+- [Tech stack](#tech-stack)
+- [Getting started](#getting-started)
+- [Project structure](#project-structure)
+- [Security & privacy](#security--privacy)
+- [Documentation](#documentation)
+- [License](#license)
+
+---
+
+## What it does
+
+Hand-drawn doodles are usually replaced by AI, not respected by it. Monster Foundry does the opposite: your strange marks stay recognisable while the app builds a whole world around them.
+
+1. **Create** — draw on a large PencilKit canvas (Apple Pencil or finger) *or* type a one-sentence description.
+2. **Direct** — pick the art material, how faithful the result should be, and what to make (postcard, story, movie, or the full pack).
+3. **Awaken** — the sketch plus the creative brief become a single structured character profile that drives every output.
+4. **Reveal & play** — an immersive reveal shows the generated world, story, and traits; tap to hear expressive narration, tap the character for a reaction, and watch its movie inline.
+5. **Revisit** — every creation is saved locally to **My Creations**, where it can be searched, replayed, and *continued* with a next chapter or a new scene.
+
+## Features
+
+**Canvas & input**
+- Large adaptive PencilKit canvas with portrait & landscape layouts
 - Fountain, ink, monoline, marker, sketch, crayon, watercolor, and eraser tools
-- Six named palettes, 50 colour swatches, a custom colour picker, size, flow, undo, redo, and protected clear
-- Written-prompt alternative to drawing
-- Ink, pencil, crayon, watercolor, marker, paper-cutout, clay, and storybook generation looks
-- Faithful, Balanced, and Creative sketch interpretation
-- Illustrated postcard, short story, animated movie, and full-adventure-pack outputs
-- Short (default), medium, and long story lengths with an optional background/story direction
-- Custom or randomly suggested movie scenes
-- One-call **Quick 8 sec** animation plus 10, 20, and 30-second movie choices built from coherent eight-second Veo scenes
-- Direct Gemini character/story and image generation
-- Direct Veo generation, authenticated MP4 download, AVFoundation composition, and inline playback controls
-- Expressive OpenAI story narration with a visible AI-voice disclosure and automatic Apple voice fallback
-- Touch reaction and haptics
-- Device-local **My Creations** history with search, type filters, newest/oldest sorting, saved images, narration, and movies
-- **Next chapter** and **New scene** branches for every saved creation
-- Offline reveal if Gemini is unavailable
-- No backend, Worker, database, account, or cloud storage service
+- Six named palettes, 50 swatches, custom colour picker, size, flow, undo/redo, protected clear
+- Written-prompt alternative for anyone who'd rather describe than draw
 
-The complete product and hackathon plan is in [PLAN.md](./PLAN.md).
-The last-minute judge runbook is in [DEMO_CHECKLIST.md](./DEMO_CHECKLIST.md).
+**Generation**
+- Eight art materials: ink, pencil, crayon, watercolor, marker, paper cutout, clay, storybook
+- Faithful / Balanced / Creative sketch interpretation
+- Outputs: illustrated postcard · short story · animated movie · full adventure pack
+- Short / medium / long story lengths with an optional story-direction seed
+- **Quick 8 sec** one-call animation, plus 10 / 20 / 30-second movies built from coherent 8-second scenes
 
-## Architecture
+**Voice & playback**
+- Expressive OpenAI narration with a visible AI-voice disclosure
+- Automatic Apple system-voice fallback if narration is unavailable
+- Inline movie playback with looping and standard controls
+- Touch reactions and haptics
+
+**Library**
+- Device-local **My Creations** history — no account, database, or cloud
+- Search, type filters, newest/oldest sorting, cached images / narration / movies
+- **Next chapter** and **New scene** branches that preserve a creation's identity
+- Offline reveal path if the model is unavailable
+
+## How it works
+
+Monster Foundry is a **direct-API, no-backend** app. All feature code lives in `MonsterFoundryPackage/Sources/MonsterFoundryFeature`.
 
 ```text
-iOS app
-  PencilKit + SwiftUI
-       |
-       +-- gemini-3.1-flash-lite       structured character + scene plan
-       +-- gemini-3.1-flash-lite-image generated hero world
-       +-- Veo 3.1 Lite                8-second movie scenes
-       +-- AVFoundation                save 8-second clips or join/trim to 10, 20, or 30 seconds
-       +-- OpenAI gpt-4o-mini-tts      expressive story narration
-       +-- AVSpeechSynthesizer          narration fallback
-       +-- AVPlayerViewController       playback controls + looping
-       +-- Application Support          local My Creations library
+iOS app (SwiftUI + PencilKit)
+      │
+      ├─ Gemini (flash-lite)          structured character + scene plan
+      ├─ Gemini (flash-lite-image)    generated hero world
+      ├─ Veo 3.1 Lite                 8-second movie scenes
+      ├─ AVFoundation                 save / join / trim to 10, 20, 30 s
+      ├─ OpenAI gpt-4o-mini-tts       expressive story narration
+      ├─ AVSpeechSynthesizer          narration fallback
+      ├─ AVPlayerViewController       playback controls + looping
+      └─ Application Support          local My Creations library
 ```
 
-All feature code lives in `MonsterFoundryPackage/Sources/MonsterFoundryFeature`.
+The sketch (or prompt) plus the full creative brief produce one structured `MonsterProfile` — name, species, visible traits, personality, home, favourite food, fear, backstory, greeting, image prompt, motion prompt, and scene prompts. That single profile is the source of truth for the image, story, voice, and movie, keeping everything consistent.
 
-## Key
+## Tech stack
 
-`MonsterFoundry/keys.plist` must contain:
+| Area | Choice |
+|------|--------|
+| Language | Swift 6.1 (strict concurrency) |
+| UI | SwiftUI (MV pattern, no ViewModels) |
+| Drawing | PencilKit |
+| Media | AVFoundation / AVKit |
+| Min OS | iOS 17.0 |
+| Structure | Xcode workspace + Swift Package (`MonsterFoundryPackage`) |
+| Testing | Swift Testing |
+| Character / image / video | Google Gemini + Veo |
+| Narration | OpenAI TTS (with Apple voice fallback) |
+
+## Getting started
+
+### Prerequisites
+
+- macOS with **Xcode 16+**
+- An iPhone/iPad simulator or device on **iOS 17+** with internet access
+- A **Google Gemini** API key with **Veo access and billing enabled**
+- *(Optional)* an **OpenAI** API key for expressive narration
+
+### 1. Clone
+
+```bash
+git clone <your-repo-url>
+cd codex-hackathon-2
+```
+
+### 2. Enable the git hooks (recommended)
+
+This repo ships a pre-commit hook that blocks secrets (API keys) and your Apple Team ID from ever being committed. Git can't auto-enable hooks on clone, so run once:
+
+```bash
+git config core.hooksPath .githooks
+```
+
+### 3. Add your API keys
+
+Create `MonsterFoundry/keys.plist` (this file is **gitignored** and must never be committed):
 
 ```xml
-<key>gemini_api_key</key>
-<string>YOUR_KEY</string>
-<key>openai_api_key</key>
-<string>YOUR_OPENAI_KEY</string>
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>gemini_api_key</key>
+    <string>YOUR_GEMINI_KEY</string>
+    <key>openai_api_key</key>
+    <string>YOUR_OPENAI_KEY</string>
+</dict>
+</plist>
 ```
 
-`gemini_api_key` drives the core character, image, and Veo pipeline; Veo access and billing must be enabled for that Google AI project. `openai_api_key` enables the expressive story narrator. If the OpenAI key is absent or narration fails, the app automatically uses an Apple system voice, so no additional voice key is required.
+- `gemini_api_key` drives the character, image, and Veo pipeline (Veo billing must be enabled).
+- `openai_api_key` enables the narrator. If it's missing, the app falls back to an Apple system voice — no extra key required.
 
-This is deliberately a direct-API, no-backend hackathon build. Bundled keys can be extracted, so do not publish or distribute valuable production credentials.
+### 4. Set your signing team
 
-## Run
+The Apple Developer Team ID is kept out of the repo. Copy the template and add your own:
 
-Open `MonsterFoundry.xcworkspace`, select the `MonsterFoundry` scheme, and run on an iPad/iPhone simulator or device with internet access.
+```bash
+cp Config/Local.xcconfig.example Config/Local.xcconfig
+# edit Config/Local.xcconfig and set DEVELOPMENT_TEAM = <YOUR_TEAM_ID>
+```
 
-## Demo advice
+`Config/Local.xcconfig` is gitignored. Find your Team ID in **Xcode ▸ Settings ▸ Accounts** or at [developer.apple.com/account](https://developer.apple.com/account).
 
-Generate and save one movie before judging. During the live demo, use **Fast illustrated postcard** for the quickest reveal, then open **My Creations**, filter **Movies**, and replay the prepared result. Finish by pressing **Next chapter** to show that a child's creation can grow instead of disappearing after one generation.
+### 5. Run
+
+Open **`MonsterFoundry.xcworkspace`**, select the **`MonsterFoundry`** scheme, and run on a simulator or device.
+
+> 💡 **Demo tip:** generate and save one movie beforehand. During a live demo, use **Fast illustrated postcard** for the quickest reveal, then open **My Creations ▸ Movies** and replay the prepared result. Finish with **Next chapter** to show a creation can grow instead of disappearing.
+
+## Project structure
+
+```text
+codex-hackathon-2/
+├── Config/                       # XCConfig build settings + entitlements
+│   ├── Shared / Debug / Release / Tests.xcconfig
+│   ├── Local.xcconfig.example    # template for your Team ID (copy → Local.xcconfig)
+│   └── MonsterFoundry.entitlements
+├── MonsterFoundry.xcworkspace/   # open this
+├── MonsterFoundry.xcodeproj/     # thin app shell
+├── MonsterFoundry/               # @main entry point, assets, keys.plist (local)
+├── MonsterFoundryPackage/        # all features & business logic
+│   └── Sources/MonsterFoundryFeature/
+├── MonsterFoundryUITests/
+├── .githooks/pre-commit          # secret / Team ID guard
+├── PLAN.md                       # full product & hackathon plan
+└── DEMO_CHECKLIST.md             # judge runbook
+```
+
+## Security & privacy
+
+- **No backend, database, account, or cloud storage.** Everything lives on the device.
+- **Secrets are never committed** — `keys.plist` and `Config/Local.xcconfig` are gitignored, and a pre-commit hook rejects any commit that would introduce an API key or an Apple Team ID.
+- This is deliberately a **direct-API hackathon build**. Bundled keys can be extracted from a shipped app, so **do not embed valuable production credentials** in a distributed build.
+
+## Documentation
+
+- 📘 [PLAN.md](./PLAN.md) — the complete product and hackathon build plan
+- ✅ [DEMO_CHECKLIST.md](./DEMO_CHECKLIST.md) — the last-minute judge runbook
+
+## License
+
+No license file is currently included. Until one is added, this project is provided as-is for the hackathon; contact the author before reuse.

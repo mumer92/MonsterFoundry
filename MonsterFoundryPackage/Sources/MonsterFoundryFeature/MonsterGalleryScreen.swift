@@ -264,7 +264,10 @@ private enum CreationFilter: String, CaseIterable, Identifiable {
         switch self {
         case .all: true
         case .favorites: creation.isPinned
-        case .movies: creation.videoFileName != nil || creation.brief.output.includesVideo
+        // A movie belongs in this tab only after its local MP4 has been saved.
+        // An animation request that failed or is still being made remains in All,
+        // preventing a judge from opening a "movie" that cannot play yet.
+        case .movies: creation.videoFileName != nil
         case .stories: creation.brief.output.includesLongStory
         case .postcards: creation.brief.output == .postcard
         }

@@ -7,7 +7,7 @@ struct OpenAINarrationClient: Sendable {
         self.session = session
     }
 
-    func generateStoryAudio(text: String) async throws -> Data {
+    func generateStoryAudio(text: String, voice: String = "marin") async throws -> Data {
         guard let apiKey = APIKeyStore.value(for: "openai_api_key") else {
             throw OpenAINarrationError.missingKey
         }
@@ -23,7 +23,7 @@ struct OpenAINarrationClient: Sendable {
         request.httpBody = try JSONEncoder().encode(
             SpeechRequest(
                 model: "gpt-4o-mini-tts",
-                voice: "marin",
+                voice: voice,
                 input: String(text.prefix(4_000)),
                 instructions: "Read as a warm, playful children's storyteller. Use expressive but gentle pacing, clear character emotion, and a cosy ending. Never sound frightening or imitate a real person.",
                 responseFormat: "mp3"
